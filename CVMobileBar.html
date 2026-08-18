@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convista Mobile Bar — Build Your Bar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0e211d;
+    --bg-panel: #142d27;
+    --bg-panel-2: #1b3830;
+    --line: rgba(242,237,228,0.14);
+    --cream: #f2ede4;
+    --cream-dim: #c9c2b4;
+    --sage: #6f9c82;
+    --copper: #d99a4e;
+    --copper-bright: #f0b46b;
+    --receipt-bg: #efe8d8;
+    --receipt-ink: #1c2b23;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--cream);
+    font-family:'Work Sans', sans-serif;
+    font-size:16px;
+    line-height:1.5;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{color:inherit;}
+  img,svg{display:block;}
+
+  /* ---------- background texture ---------- */
+  .grain{
+    position:fixed; inset:0; pointer-events:none; z-index:1; opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 40px;
+    background:rgba(14,33,29,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{ display:flex; align-items:center; gap:10px; }
+  .logo-mark{ width:26px; height:26px; }
+  .logo-word{ font-family:'Fraunces', serif; font-size:20px; font-weight:700; letter-spacing:0.01em; }
+  .logo-word em{ font-style:italic; color:var(--copper-bright); }
+  nav .navlink{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--cream-dim); text-decoration:none;
+    border:1px solid var(--line); padding:9px 16px; border-radius:20px;
+    transition:all .2s ease;
+  }
+  nav .navlink:hover{ border-color:var(--copper); color:var(--copper-bright); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    padding:120px 40px 90px;
+    max-width:1200px; margin:0 auto;
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:60px; align-items:center;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--sage); margin-bottom:22px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--sage); }
+  .hero h1{
+    font-size:clamp(42px, 5.4vw, 74px); line-height:0.98; color:var(--cream);
+  }
+  .hero h1 .ital{ font-style:italic; font-weight:500; color:var(--copper-bright); }
+  .hero p.lede{
+    margin-top:26px; max-width:46ch; color:var(--cream-dim); font-size:17px;
+  }
+  .hero-ctas{ margin-top:36px; display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; text-transform:uppercase; letter-spacing:0.06em;
+    padding:15px 26px; border-radius:2px; cursor:pointer; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .btn-primary{ background:var(--copper); color:#1c1305; }
+  .btn-primary:hover{ background:var(--copper-bright); transform:translateY(-1px); }
+  .btn-ghost{ border-color:var(--line); color:var(--cream); }
+  .btn-ghost:hover{ border-color:var(--copper); color:var(--copper-bright); }
+
+  .hero-glass{ position:relative; height:420px; }
+
+  /* ---------- section shell ---------- */
+  .section{ max-width:1200px; margin:0 auto; padding:80px 40px; }
+  .section-head{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:40px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:24px;}
+  .section-head .num{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--sage); letter-spacing:0.1em; }
+  .section-head h2{ font-size:clamp(28px,3vw,40px); margin-top:8px; color:var(--cream); }
+  .section-head p{ color:var(--cream-dim); max-width:40ch; font-size:14.5px; }
+
+  /* ---------- layout: builder + tab ---------- */
+  .builder-wrap{
+    max-width:1200px; margin:0 auto; padding:0 40px 120px;
+    display:grid; grid-template-columns:1fr 340px; gap:48px; align-items:start;
+  }
+  .builder-col{ display:flex; flex-direction:column; gap:64px; }
+
+  /* package cards */
+  .pkg-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  .pkg-card{
+    border:1px solid var(--line); border-radius:var(--radius); padding:26px 22px;
+    background:var(--bg-panel); cursor:pointer; position:relative; transition:all .2s ease;
+  }
+  .pkg-card:hover{ border-color:var(--sage); }
+  .pkg-card.active{ border-color:var(--copper); background:var(--bg-panel-2); box-shadow:0 0 0 1px var(--copper); }
+  .pkg-tier{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage); }
+  .pkg-card.active .pkg-tier{ color:var(--copper-bright); }
+  .pkg-name{ font-family:'Fraunces',serif; font-size:24px; margin-top:8px; }
+  .pkg-price{ font-family:'IBM Plex Mono',monospace; font-size:19px; margin-top:10px; color:var(--copper-bright); }
+  .pkg-price span{ font-size:11px; color:var(--cream-dim); }
+  .pkg-desc{ font-size:13px; color:var(--cream-dim); margin-top:12px; line-height:1.55; }
+  .pkg-list{ list-style:none; padding:0; margin:16px 0 0; font-size:12.5px; color:var(--cream-dim); display:flex; flex-direction:column; gap:6px; }
+  .pkg-list li::before{ content:'—'; color:var(--sage); margin-right:6px; }
+  .radio-dot{ position:absolute; top:22px; right:22px; width:16px; height:16px; border-radius:50%; border:1.5px solid var(--line); }
+  .pkg-card.active .radio-dot{ border-color:var(--copper); }
+  .pkg-card.active .radio-dot::after{ content:''; display:block; width:8px; height:8px; margin:3px; border-radius:50%; background:var(--copper); }
+
+  /* cocktail grid */
+  .tabs{ display:flex; gap:8px; margin-bottom:20px; }
+  .tab-btn{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:0.06em;
+    padding:9px 16px; border:1px solid var(--line); border-radius:20px; background:transparent; color:var(--cream-dim); cursor:pointer;
+  }
+  .tab-btn.active{ background:var(--sage); border-color:var(--sage); color:#0e211d; }
+  .drink-note{ font-size:13px; color:var(--cream-dim); margin-bottom:18px; }
+  .drink-note b{ color:var(--copper-bright); font-weight:600; }
+  .drink-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .drink-card{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; cursor:pointer;
+    background:var(--bg-panel); transition:all .15s ease;
+  }
+  .drink-card:hover{ border-color:var(--sage); }
+  .drink-card.picked{ border-color:var(--copper); background:var(--bg-panel-2); }
+  .drink-card.locked{ opacity:0.5; cursor:not-allowed; border-color:var(--line); background:var(--bg-panel); }
+  .drink-card.locked .drink-check{ border-color:var(--sage); background:transparent; color:var(--sage); }
+  .drink-main{ display:flex; flex-direction:column; gap:3px; }
+  .drink-name{ font-size:14.5px; font-weight:500; }
+  .drink-tag{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--sage); text-transform:uppercase; letter-spacing:0.05em; }
+  .drink-check{ width:19px; height:19px; border:1.5px solid var(--line); border-radius:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .drink-card.picked .drink-check{ border-color:var(--copper); background:var(--copper); color:#1c1305; font-size:12px; }
+
+  /* form fields */
+  .field-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  .field{ display:flex; flex-direction:column; gap:8px; }
+  .field label{ font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--sage); }
+  .field input[type=date], .field input[type=time], .field input[type=text], .field input[type=email], .field select, .field textarea{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); color:var(--cream);
+    padding:12px 14px; font-family:'Work Sans',sans-serif; font-size:14.5px;
+  }
+  .field select{ appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c9c2b4'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center;
+  }
+  .field textarea{ resize:vertical; min-height:80px; font-family:'Work Sans',sans-serif; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--copper); }
+  .field input:disabled{ opacity:0.5; cursor:not-allowed; background:var(--bg-panel); color:var(--cream-dim); }
+
+  .stepper{ display:flex; align-items:center; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; width:fit-content; }
+  .stepper button{ background:var(--bg-panel-2); border:none; color:var(--cream); width:38px; height:44px; font-size:18px; cursor:pointer; }
+  .stepper button:hover{ background:var(--copper); color:#1c1305; }
+  .stepper span{ width:64px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:15px; }
+
+  .duration-row{ display:flex; align-items:center; gap:16px; }
+  .duration-row input[type=range]{ flex:1; accent-color:var(--copper); }
+  .duration-val{ font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--copper-bright); width:90px; }
+
+  /* addons */
+  .addon-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .addon-card{
+    display:flex; align-items:flex-start; gap:12px; border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; cursor:pointer; background:var(--bg-panel);
+  }
+  .addon-card.picked{ border-color:var(--copper); background:var(--bg-panel-2); }
+  .addon-check{ width:19px; height:19px; border:1.5px solid var(--line); border-radius:4px; flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; }
+  .addon-card.picked .addon-check{ border-color:var(--copper); background:var(--copper); color:#1c1305; font-size:12px; }
+  .addon-name{ font-size:14px; font-weight:500; }
+  .addon-price{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--sage); margin-top:4px; }
+
+  /* ---------- receipt / bar tab ---------- */
+  .tab-sticky{ position:sticky; top:96px; }
+  .receipt{
+    background:var(--receipt-bg); color:var(--receipt-ink); border-radius:2px;
+    padding:28px 24px 20px; font-family:'IBM Plex Mono', monospace;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    position:relative;
+  }
+  .receipt::before, .receipt::after{
+    content:''; position:absolute; left:0; right:0; height:10px;
+    background:
+      radial-gradient(circle at 8px 5px, transparent 5px, var(--receipt-bg) 5.5px) repeat-x;
+    background-size:16px 10px;
+  }
+  .receipt::before{ top:-5px; transform:rotate(180deg); }
+  .receipt::after{ bottom:-5px; }
+  .receipt-head{ text-align:center; margin-bottom:14px; }
+  .receipt-head .rn{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; letter-spacing:0.02em;}
+  .receipt-head .rs{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; opacity:0.65; margin-top:4px;}
+  .receipt-divider{ border-top:1.5px dashed rgba(28,43,35,0.35); margin:14px 0; }
+  .receipt-line{ display:flex; justify-content:space-between; gap:10px; font-size:12px; padding:3px 0; }
+  .receipt-line.muted{ opacity:0.6; }
+  .receipt-line .rl-name{ flex:1; }
+  .receipt-empty{ font-size:12px; opacity:0.55; text-align:center; padding:10px 0; }
+  .receipt-total{ display:flex; justify-content:space-between; font-size:16px; font-weight:600; margin-top:10px; }
+  .receipt-total .amt{ font-size:19px; }
+  .receipt-note{ font-size:10px; opacity:0.6; margin-top:14px; line-height:1.5; text-align:center; }
+  .receipt-cta{
+    width:100%; margin-top:18px; padding:14px; border:none; border-radius:2px;
+    background:var(--receipt-ink); color:var(--receipt-bg); font-family:'IBM Plex Mono',monospace;
+    font-size:12px; text-transform:uppercase; letter-spacing:0.08em; cursor:pointer;
+  }
+  .receipt-cta:hover{ background:#0d1a14; }
+  .receipt-barcode{ height:34px; margin-top:16px;
+    background:repeating-linear-gradient(90deg, var(--receipt-ink) 0 2px, transparent 2px 5px, var(--receipt-ink) 5px 6px, transparent 6px 9px);
+    opacity:0.75;
+  }
+
+  /* mobile summary bar */
+  .mobile-summary{ display:none; }
+
+  footer{
+    border-top:1px solid var(--line); padding:50px 40px; max-width:1200px; margin:0 auto;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; color:var(--cream-dim); font-size:13px;
+  }
+
+  @media (max-width: 980px){
+    .hero{ grid-template-columns:1fr; padding-top:90px; }
+    .hero-glass{ height:260px; order:-1; }
+    .builder-wrap{ grid-template-columns:1fr; }
+    .pkg-grid{ grid-template-columns:1fr; }
+    .drink-grid{ grid-template-columns:1fr; }
+    .addon-grid{ grid-template-columns:1fr; }
+    .field-grid{ grid-template-columns:1fr; }
+    .tab-sticky{ position:static; }
+    nav{ padding:16px 20px; }
+    .section, .builder-wrap{ padding-left:20px; padding-right:20px; }
+    .hero{ padding-left:20px; padding-right:20px; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<nav>
+  <div class="logo">
+    <svg class="logo-mark" viewBox="0 0 26 26" fill="none">
+      <path d="M4 4h18l-7 12v6h-4v-6L4 4z" stroke="#f0b46b" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M9 4l4 7 4-7" stroke="#f0b46b" stroke-width="1.2" stroke-linejoin="round"/>
+    </svg>
+    <div class="logo-word">CONV<em>ISTA</em></div>
+  </div>
+  <a class="navlink" href="#builder">Build your bar</a>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow">Mobile Bar Catering · Metro Manila &amp; Nationwide</div>
+    <h1>Your event,<br><span class="ital">poured</span> to order.</h1>
+    <p class="lede">Convista brings the full bar — bartenders, glassware, and a cocktail list built around your guests — to weddings, debuts, and corporate nights anywhere in the Philippines. Pick a package, build the menu, get your price.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#builder">Start building →</a>
+      <a class="btn btn-ghost" href="#how">See how it works</a>
+    </div>
+  </div>
+  <div class="hero-glass">
+    <svg viewBox="0 0 320 420" width="100%" height="100%">
+      <defs>
+        <linearGradient id="liq" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f0b46b"/>
+          <stop offset="100%" stop-color="#c96a2e"/>
+        </linearGradient>
+        <linearGradient id="glassBody" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="rgba(242,237,228,0.05)"/>
+          <stop offset="50%" stop-color="rgba(242,237,228,0.16)"/>
+          <stop offset="100%" stop-color="rgba(242,237,228,0.05)"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="160" cy="392" rx="120" ry="14" fill="rgba(0,0,0,0.35)"/>
+      <path d="M70 40 L130 300 Q160 320 190 300 L250 40 Z" fill="url(#glassBody)" stroke="rgba(242,237,228,0.3)" stroke-width="1.5"/>
+      <path d="M96 150 L134 292 Q160 306 186 292 L224 150 Z" fill="url(#liq)" opacity="0.92"/>
+      <rect x="155" y="300" width="10" height="70" fill="rgba(242,237,228,0.25)"/>
+      <ellipse cx="160" cy="374" rx="46" ry="9" fill="rgba(242,237,228,0.2)"/>
+      <line x1="205" y1="70" x2="150" y2="150" stroke="#f2ede4" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>
+      <circle cx="118" cy="120" r="7" fill="#6f9c82" opacity="0.9"/>
+      <circle cx="132" cy="102" r="5" fill="#6f9c82" opacity="0.7"/>
+      <g opacity="0.7">
+        <circle cx="140" cy="260" r="2.5" fill="#f2ede4"/>
+        <circle cx="170" cy="230" r="2" fill="#f2ede4"/>
+        <circle cx="155" cy="190" r="2.5" fill="#f2ede4"/>
+        <circle cx="180" cy="270" r="1.8" fill="#f2ede4"/>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="section-head">
+    <div>
+      <div class="num">001 — How it works</div>
+      <h2>Three pours, one quote.</h2>
+    </div>
+    <p>No calls needed to get a number. Choose a tier, pick your drinks, tell us the day — the tab updates as you go.</p>
+  </div>
+  <div class="pkg-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div style="padding:20px 0;">
+      <div class="pkg-tier mono">01 · Package</div>
+      <p style="color:var(--cream-dim); font-size:14px; margin-top:10px;">Pick the tier that fits your budget and guest count.</p>
+    </div>
+    <div style="padding:20px 0;">
+      <div class="pkg-tier mono">02 · Menu</div>
+      <p style="color:var(--cream-dim); font-size:14px; margin-top:10px;">Choose the cocktails and mocktails your guests will drink.</p>
+    </div>
+    <div style="padding:20px 0;">
+      <div class="pkg-tier mono">03 · Details</div>
+      <p style="color:var(--cream-dim); font-size:14px; margin-top:10px;">Set the date, headcount, and venue — see your live total.</p>
+    </div>
+  </div>
+</section>
+
+<div class="builder-wrap" id="builder">
+  <div class="builder-col">
+
+    <!-- PACKAGE -->
+    <div>
+      <div class="section-head">
+        <div><div class="num">002 — Step 1</div><h2>Choose your package</h2></div>
+        <p>Every tier includes bartenders, bar setup, ice, garnish, and standard glassware for a 3-hour service window.</p>
+      </div>
+      <div class="pkg-grid" id="pkgGrid"></div>
+    </div>
+
+    <!-- COCKTAILS -->
+    <div>
+      <div class="section-head">
+        <div><div class="num">003 — Step 2</div><h2>Build the drink menu</h2></div>
+        <p>Included selections are covered by your package. Extra picks are added to the tab per guest.</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-cat="cocktail">Cocktails</button>
+        <button class="tab-btn" data-cat="mocktail">Mocktails</button>
+      </div>
+      <div class="drink-note" id="drinkNote"></div>
+      <div class="drink-grid" id="drinkGrid"></div>
+    </div>
+
+    <!-- EVENT DETAILS -->
+    <div>
+      <div class="section-head">
+        <div><div class="num">004 — Step 3</div><h2>Event details</h2></div>
+        <p>Date, headcount, and setting shape the crew size and final quote.</p>
+      </div>
+
+      <div class="field-grid" style="margin-bottom:18px;">
+        <div class="field">
+          <label>Event date</label>
+          <input type="date" id="eventDate">
+        </div>
+        <div class="field">
+          <label>Start time</label>
+          <input type="time" id="eventTime" value="18:00">
+        </div>
+        <div class="field">
+          <label>End time <span style="opacity:0.6; text-transform:none; letter-spacing:0;">(3-hr unlimited window)</span></label>
+          <input type="time" id="eventEndTime" disabled>
+        </div>
+        <div class="field">
+          <label>Event type</label>
+          <select id="eventType">
+            <option value="wedding">Wedding</option>
+            <option value="debut">Debut / Birthday</option>
+            <option value="corporate">Corporate event</option>
+            <option value="private">Private / house party</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Venue setting</label>
+          <select id="venueType">
+            <option value="indoor">Indoor / function hall</option>
+            <option value="outdoor">Outdoor / garden</option>
+            <option value="beach">Beach / resort</option>
+            <option value="home">Residence</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-grid" style="margin-bottom:18px;">
+        <div class="field">
+          <label>Guest count (pax)</label>
+          <div class="stepper">
+            <button id="paxMinus">−</button>
+            <span id="paxVal">80</span>
+            <button id="paxPlus">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Service duration</label>
+          <div class="duration-row">
+            <input type="range" id="durationRange" min="3" max="8" value="3" step="1">
+            <span class="duration-val mono" id="durationVal">3 hrs</span>
+          </div>
+          <div class="drink-tag" id="extensionHint" style="margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label>Contact name</label>
+          <input type="text" id="contactName" placeholder="Full name">
+        </div>
+        <div class="field">
+          <label>Contact email</label>
+          <input type="email" id="contactEmail" placeholder="you@email.com">
+        </div>
+      </div>
+      <div class="field-grid" style="margin-top:18px; grid-template-columns:2fr 1fr;">
+        <div class="field">
+          <label>Venue address</label>
+          <input type="text" id="venueAddress" placeholder="Street, barangay, city">
+        </div>
+        <div class="field">
+          <label>Zip code</label>
+          <input type="text" id="venueZip" placeholder="e.g. 4217" inputmode="numeric" maxlength="4">
+        </div>
+      </div>
+      <div class="field" style="margin-top:18px;">
+        <label>Notes for the bar team</label>
+        <textarea id="notes" placeholder="Allergies, theme colors, must-have drink, venue restrictions…"></textarea>
+      </div>
+    </div>
+
+    <!-- ADD-ONS -->
+    <div>
+      <div class="section-head">
+        <div><div class="num">005 — Step 4</div><h2>Add-ons</h2></div>
+        <p>Optional extras layered on top of your package.</p>
+      </div>
+      <div class="addon-grid" id="addonGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- RECEIPT -->
+  <div class="tab-sticky">
+    <div class="receipt">
+      <div class="receipt-head">
+        <div class="rn">CONVISTA</div>
+        <div class="rs">Mobile Bar · Order Slip</div>
+      </div>
+      <div class="receipt-divider"></div>
+      <div id="receiptBody">
+        <div class="receipt-empty">Your selections will appear here</div>
+      </div>
+      <div class="receipt-divider"></div>
+      <div class="receipt-total">
+        <span>TOTAL EST.</span>
+        <span class="amt" id="receiptTotal">₱0</span>
+      </div>
+      <div class="receipt-note">Estimate only. Excludes 12% VAT &amp; travel fee outside Metro Manila. Final quote confirmed by our team within 24 hrs.</div>
+      <button class="receipt-cta" id="submitBtn">Send booking request</button>
+      <div class="receipt-barcode"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>© Convista Mobile Bar. Estimates shown are indicative, based on current Philippine mobile bar market rates.</div>
+  <div class="mono" style="color:var(--copper-bright);">convistamobilebar@gmail.com · 0917 000 0000</div>
+</footer>
+
+<script>
+/* ---------------- data ---------------- */
+const PACKAGES = [
+  { id:'basic', name:'Basic Pour', included:8, basePrice:7500, extensionRate:2000, blurb:'Two bartenders and a fixed eight-cocktail menu, unlimited pours for your full three-hour window.',
+    features:['2 bartenders','8 fixed cocktail selections','Shotglass & wine glass','3 hrs unlimited service'] },
+  { id:'premium', name:'Premium Reserve', included:10, basePrice:9500, extensionRate:3000, blurb:'Two bartenders and full run of the menu — pick any 10, including three Premium-exclusive cocktails.',
+    features:['2 bartenders','Choose any 10 cocktails','Shotglass & wine glass','3 hrs unlimited service'] },
+];
+
+// Basic Pour's menu is fixed — these 8 are locked in, no substitutions.
+const BASIC_FIXED = ['Galaxy','Velocity','Tequila Sunrise','Tequila Sunshine','Mojito','Moonlit','Unicorn','Forest and Earth'];
+// Cocktails available only when Premium Reserve is selected.
+const PREMIUM_EXCLUSIVE = ['Daiquiri','Long Island','Cosmopolitan'];
+
+const DRINKS = {
+  cocktail: [
+    {n:'Tequila Sunrise', t:'Cocktail'}, {n:'Tequila Sunshine', t:'Cocktail'},
+    {n:'Velocity', t:'Cocktail'}, {n:'Galaxy', t:'Cocktail'},
+    {n:'Margarita', t:'Cocktail'}, {n:'Moonlit', t:'Cocktail'},
+    {n:'Bob Marley', t:'Cocktail'}, {n:'Forest and Earth', t:'Cocktail'},
+    {n:'Mojito', t:'Cocktail'}, {n:'Unicorn', t:'Cocktail'},
+    {n:'Daiquiri', t:'Premium only'}, {n:'Long Island', t:'Premium only'}, {n:'Cosmopolitan', t:'Premium only'},
+  ],
+  mocktail: [
+    {n:'Virgin Mojito', t:'Mocktail'}, {n:'Cucumber Lemonade', t:'Mocktail'},
+    {n:'Blue Lagoon', t:'Mocktail'}, {n:'Iced Calamansi Tea', t:'Mocktail'},
+  ]
+};
+
+const ADDONS = [
+  { id:'welcome', name:'Welcome drink tray on arrival', price:3000, unit:'flat' },
+  { id:'signage', name:'Custom bar signage & menu board', price:1500, unit:'flat' },
+  { id:'ledcart', name:'Lighted / LED bar cart upgrade', price:2500, unit:'flat' },
+  { id:'bartender', name:'Extra bartender', price:1800, unit:'flat' },
+  { id:'glassware', name:'Premium glassware upgrade', price:20, unit:'pax' },
+  { id:'mocktailbar', name:'Dedicated non-alcoholic station', price:50, unit:'pax' },
+];
+
+const EVENT_LABELS = { wedding:'Wedding', debut:'Debut / Birthday', corporate:'Corporate event', private:'Private / house party', other:'Other event' };
+const EVENT_MULT = { wedding:1, debut:1, corporate:1.10, private:1.05, other:1 };
+const VENUE_LABELS = { indoor:'Indoor / function hall', outdoor:'Outdoor / garden', beach:'Beach / resort', home:'Residence' };
+
+// Base package price by guest count. Each package is anchored to its own
+// confirmed 50-pax rate; ₱100 per additional guest carries over from the
+// original Basic quote (50 pax = ₱7,500 / 100 pax = ₱12,500) since no
+// separate per-guest rate was given for Premium beyond 50 pax — confirm
+// this if Premium should scale differently.
+function basePriceForPax(pax, basePrice){
+  const baselinePax = 50, ratePerPax = 100;
+  if(pax <= baselinePax) return basePrice;
+  return basePrice + (pax - baselinePax) * ratePerPax;
+}
+
+/* ---------------- state ---------------- */
+let state = {
+  pkg: 'basic',
+  cat: 'cocktail',
+  picks: { cocktail: [...BASIC_FIXED], mocktail: [] },
+  premiumPicks: ['Tequila Sunrise','Tequila Sunshine','Velocity','Galaxy','Margarita','Moonlit','Bob Marley','Forest and Earth','Mojito','Unicorn'],
+  pax: 80,
+  duration: 3,
+  eventType: 'wedding',
+  venueType: 'indoor',
+  addons: []
+};
+
+// Returns the cocktail list actually in effect for the current package.
+function activeCocktails(){ return state.pkg === 'basic' ? BASIC_FIXED : state.premiumPicks; }
+
+const peso = n => '₱' + Math.round(n).toLocaleString('en-PH');
+
+/* ---------------- render: packages ---------------- */
+const pkgGrid = document.getElementById('pkgGrid');
+function renderPackages(){
+  pkgGrid.innerHTML = PACKAGES.map(p => `
+    <div class="pkg-card ${state.pkg===p.id?'active':''}" data-id="${p.id}">
+      <div class="radio-dot"></div>
+      <div class="pkg-tier mono">Tier</div>
+      <div class="pkg-name">${p.name}</div>
+      <div class="pkg-price">${peso(basePriceForPax(state.pax, p.basePrice))} <span>for ${state.pax} pax</span></div>
+      <div class="pkg-desc">${p.blurb}</div>
+      <ul class="pkg-list">${p.features.map(f=>`<li>${f}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+  pkgGrid.querySelectorAll('.pkg-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      state.pkg = card.dataset.id;
+      renderPackages(); renderDrinks(); renderReceipt(); renderDrinkNote(); renderExtensionHint();
+    });
+  });
+}
+
+/* ---------------- render: drinks ---------------- */
+const drinkGrid = document.getElementById('drinkGrid');
+const drinkNote = document.getElementById('drinkNote');
+function currentPkg(){ return PACKAGES.find(p=>p.id===state.pkg); }
+
+function renderDrinkNote(){
+  if(state.cat !== 'cocktail'){
+    drinkNote.innerHTML = `Mocktails are available with either package at no extra charge.`;
+    return;
+  }
+  const pkg = currentPkg();
+  if(state.pkg === 'basic'){
+    drinkNote.innerHTML = `<b>Basic Pour</b> comes with a fixed 8-cocktail menu — these are locked in and can't be swapped. Want to customize the list? Upgrade to Premium Reserve.`;
+  } else {
+    const chosen = state.premiumPicks.length;
+    const extra = Math.max(0, chosen - pkg.included);
+    drinkNote.innerHTML = `<b>Premium Reserve</b> includes <b>${pkg.included}</b> cocktail selections from the full list, including 3 Premium-exclusive drinks. `
+      + (extra>0 ? `You've picked ${chosen} — <b>${extra} extra</b> selection${extra>1?'s':''} added at ₱15/pax each.` : `You've picked ${chosen} so far.`);
+  }
+}
+
+function renderDrinks(){
+  if(state.cat === 'mocktail'){
+    const list = DRINKS.mocktail;
+    drinkGrid.innerHTML = list.map(d=>{
+      const picked = state.picks.mocktail.includes(d.n);
+      return `<div class="drink-card ${picked?'picked':''}" data-name="${d.n}">
+        <div class="drink-main"><div class="drink-name">${d.n}</div><div class="drink-tag">${d.t}</div></div>
+        <div class="drink-check">${picked?'✓':''}</div>
+      </div>`;
+    }).join('');
+    drinkGrid.querySelectorAll('.drink-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const name = card.dataset.name;
+        const arr = state.picks.mocktail;
+        const idx = arr.indexOf(name);
+        if(idx>-1) arr.splice(idx,1); else arr.push(name);
+        renderDrinks(); renderDrinkNote(); renderReceipt();
+      });
+    });
+    return;
+  }
+
+  // cocktail tab
+  if(state.pkg === 'basic'){
+    drinkGrid.innerHTML = BASIC_FIXED.map(name=>{
+      return `<div class="drink-card picked locked" data-name="${name}">
+        <div class="drink-main"><div class="drink-name">${name}</div><div class="drink-tag">Included</div></div>
+        <div class="drink-check">✓</div>
+      </div>`;
+    }).join('');
+    // locked — no click handlers, nothing to toggle
+    return;
+  }
+
+  // premium — full pool, exclusives included
+  const list = DRINKS.cocktail;
+  drinkGrid.innerHTML = list.map(d=>{
+    const picked = state.premiumPicks.includes(d.n);
+    return `<div class="drink-card ${picked?'picked':''}" data-name="${d.n}">
+      <div class="drink-main"><div class="drink-name">${d.n}</div><div class="drink-tag">${d.t}</div></div>
+      <div class="drink-check">${picked?'✓':''}</div>
+    </div>`;
+  }).join('');
+  drinkGrid.querySelectorAll('.drink-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const name = card.dataset.name;
+      const arr = state.premiumPicks;
+      const idx = arr.indexOf(name);
+      if(idx>-1) arr.splice(idx,1); else arr.push(name);
+      renderDrinks(); renderDrinkNote(); renderReceipt();
+    });
+  });
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.cat = btn.dataset.cat;
+    renderDrinks(); renderDrinkNote();
+  });
+});
+
+/* ---------------- render: addons ---------------- */
+const addonGrid = document.getElementById('addonGrid');
+function renderAddons(){
+  addonGrid.innerHTML = ADDONS.map(a=>{
+    const picked = state.addons.includes(a.id);
+    return `<div class="addon-card ${picked?'picked':''}" data-id="${a.id}">
+      <div class="addon-check">${picked?'✓':''}</div>
+      <div>
+        <div class="addon-name">${a.name}</div>
+        <div class="addon-price">${a.unit==='flat' ? peso(a.price)+' flat' : peso(a.price)+' / pax'}</div>
+      </div>
+    </div>`;
+  }).join('');
+  addonGrid.querySelectorAll('.addon-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const id = card.dataset.id;
+      const idx = state.addons.indexOf(id);
+      if(idx>-1) state.addons.splice(idx,1); else state.addons.push(id);
+      renderAddons(); renderReceipt();
+    });
+  });
+}
+
+/* ---------------- pax stepper ---------------- */
+const paxVal = document.getElementById('paxVal');
+document.getElementById('paxMinus').addEventListener('click', ()=>{ state.pax = Math.max(20, state.pax-10); paxVal.textContent = state.pax; renderPackages(); renderReceipt(); renderDrinkNote(); });
+document.getElementById('paxPlus').addEventListener('click', ()=>{ state.pax = Math.min(500, state.pax+10); paxVal.textContent = state.pax; renderPackages(); renderReceipt(); renderDrinkNote(); });
+
+/* ---------------- duration ---------------- */
+const durationRange = document.getElementById('durationRange');
+const durationVal = document.getElementById('durationVal');
+const extensionHint = document.getElementById('extensionHint');
+function renderExtensionHint(){
+  extensionHint.textContent = `Extension after 3 hrs: ${peso(currentPkg().extensionRate)} / hr (${currentPkg().name})`;
+}
+durationRange.addEventListener('input', ()=>{ state.duration = parseInt(durationRange.value); durationVal.textContent = state.duration + ' hrs'; renderReceipt(); });
+
+/* ---------------- start / end time ---------------- */
+const eventTimeInput = document.getElementById('eventTime');
+const eventEndTimeInput = document.getElementById('eventEndTime');
+function renderEndTime(){
+  const start = eventTimeInput.value;
+  if(!start){ eventEndTimeInput.value = ''; return; }
+  const [h, m] = start.split(':').map(Number);
+  const endH = (h + 3) % 24;
+  eventEndTimeInput.value = `${String(endH).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+eventTimeInput.addEventListener('input', renderEndTime);
+eventTimeInput.addEventListener('change', renderEndTime);
+
+/* ---------------- selects ---------------- */
+document.getElementById('eventType').addEventListener('change', e=>{ state.eventType = e.target.value; renderReceipt(); });
+document.getElementById('venueType').addEventListener('change', e=>{ state.venueType = e.target.value; renderReceipt(); });
+
+/* ---------------- pricing engine ---------------- */
+function computeTotals(){
+  const pkg = currentPkg();
+  const base = basePriceForPax(state.pax, pkg.basePrice);
+  const cocktails = activeCocktails();
+  const extraCocktails = Math.max(0, cocktails.length - pkg.included);
+  const extraCocktailCost = extraCocktails * 15 * state.pax;
+  const extraHours = Math.max(0, state.duration - 3);
+  const overtimeCost = extraHours * pkg.extensionRate;
+  const addonLines = state.addons.map(id=>{
+    const a = ADDONS.find(x=>x.id===id);
+    const cost = a.unit==='flat' ? a.price : a.price * state.pax;
+    return { name:a.name, cost };
+  });
+  const addonTotal = addonLines.reduce((s,l)=>s+l.cost,0);
+  const subtotal = base + extraCocktailCost + overtimeCost + addonTotal;
+  const mult = EVENT_MULT[state.eventType] || 1;
+  const total = subtotal * mult;
+  return { pkg, base, cocktails, extraCocktails, extraCocktailCost, extraHours, overtimeCost, addonLines, addonTotal, mult, total };
+}
+
+/* ---------------- receipt render ---------------- */
+const receiptBody = document.getElementById('receiptBody');
+const receiptTotal = document.getElementById('receiptTotal');
+
+function renderReceipt(){
+  const c = computeTotals();
+  let lines = [];
+  lines.push(`<div class="receipt-line"><span class="rl-name">${c.pkg.name} (${state.pax} pax)</span><span>${peso(c.base)}</span></div>`);
+  if(c.extraCocktails>0){
+    lines.push(`<div class="receipt-line muted"><span class="rl-name">+${c.extraCocktails} extra cocktail sel.</span><span>${peso(c.extraCocktailCost)}</span></div>`);
+  }
+  if(c.extraHours>0){
+    lines.push(`<div class="receipt-line muted"><span class="rl-name">+${c.extraHours} hr extension (${peso(c.pkg.extensionRate)}/hr)</span><span>${peso(c.overtimeCost)}</span></div>`);
+  }
+  c.addonLines.forEach(l=>{
+    lines.push(`<div class="receipt-line muted"><span class="rl-name">${l.name}</span><span>${peso(l.cost)}</span></div>`);
+  });
+  if(c.mult !== 1){
+    lines.push(`<div class="receipt-line muted"><span class="rl-name">${EVENT_LABELS[state.eventType]} service fee</span><span>+${Math.round((c.mult-1)*100)}%</span></div>`);
+  }
+  receiptBody.innerHTML = lines.join('');
+  receiptTotal.textContent = peso(c.total);
+}
+
+const BUSINESS_EMAIL = 'convistamobilebar@gmail.com';
+
+/* ---------------- submit ---------------- */
+document.getElementById('submitBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('contactName').value.trim();
+  const email = document.getElementById('contactEmail').value.trim();
+  const date = document.getElementById('eventDate').value;
+  if(!name || !email || !date){
+    alert('Please fill in your name, email, and event date before sending your booking request.');
+    return;
+  }
+  const c = computeTotals();
+  const time = document.getElementById('eventTime').value;
+  const endTime = document.getElementById('eventEndTime').value;
+  const summary = `CONVISTA BOOKING REQUEST
+—
+Name: ${name}
+Email: ${email}
+Date: ${date}  Time: ${time} – ${endTime}${state.duration>3 ? ` (+${state.duration-3} hr extension)` : ''}
+Event: ${EVENT_LABELS[state.eventType]} (${VENUE_LABELS[state.venueType]})
+Venue address: ${document.getElementById('venueAddress').value.trim() || '—'}
+Zip code: ${document.getElementById('venueZip').value.trim() || '—'}
+Guests: ${state.pax} pax
+Duration: ${state.duration} hrs
+Package: ${c.pkg.name}
+Cocktails: ${c.cocktails.join(', ') || '—'}
+Mocktails: ${state.picks.mocktail.join(', ') || '—'}
+Add-ons: ${state.addons.map(id=>ADDONS.find(a=>a.id===id).name).join(', ') || '—'}
+Notes: ${document.getElementById('notes').value.trim() || '—'}
+—
+Estimated total: ${peso(c.total)} (excl. 12% VAT & out-of-town travel fee)`;
+
+  const subject = `Booking Request — ${name} — ${date}`;
+  const mailtoUrl = `mailto:${encodeURIComponent(BUSINESS_EMAIL)}`
+    + `?cc=${encodeURIComponent(email)}`
+    + `&subject=${encodeURIComponent(subject)}`
+    + `&body=${encodeURIComponent(summary)}`;
+
+  navigator.clipboard?.writeText(summary).catch(()=>{});
+  window.location.href = mailtoUrl;
+
+  const btn = document.getElementById('submitBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Opening your email app…';
+  setTimeout(()=>{ btn.textContent = original; }, 3200);
+});
+
+/* ---------------- init ---------------- */
+renderPackages();
+renderDrinks();
+renderDrinkNote();
+renderAddons();
+renderReceipt();
+renderEndTime();
+renderExtensionHint();
+</script>
+</body>
+</html>
